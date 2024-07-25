@@ -1,0 +1,18 @@
+Functionalities:
+1. List animes.
+   - Filter by:
+     - name
+     - genre
+   - The list should contain:
+     - The cover.
+     - A trailer link.
+     - The sinopse.
+2. Add animes to your list.
+3. Animes on your list must be marked with one of the following tags:
+   - To watch.
+   - Watching.
+   - Watched.
+4. Anime discover and recommendation based on your list.
+
+database structure:
+https://dbdiagram.io/d/anime_list-66920b009939893daed1367a
