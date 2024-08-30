@@ -16,3 +16,29 @@ Functionalities:
 
 database structure:
 https://dbdiagram.io/d/anime_list-66920b009939893daed1367a
+
+To Do:
+[x] - move TMDB "interfaces" to a products package.
+[x] - move DefaultError "interface" to a utils package.
+[x] - rename ApiService to TMDBService.
+[x] - there are some atributes of the TMDBService that could be 
+      private.
+[x] - rename Displayer concrete class to TextBuilder.
+[x] - move Displayers and ImageBuilder to a presentation package.
+[x] - learn how to correctly abstract properties and methods in abstract
+      classes.
+[x] - create a proper interface for ImageBuilder.
+[x] - plug TMDBService with CLIParser, should have list and details methods
+      available at this point.
+[x] - refactor option lookup in controller.
+[x] - add page options to anime search method.
+[ ] - anime tmdb service get_anime_list() should receive a list of genres
+      from the api and a list of comma separated values from the cli,
+      apply matching pattern and inject list of genres in
+      _parse_anime_list().
+[ ] - add filter options to anime search method.
+[ ] - add service method to search serie by name
+[x] - add a method to list available genres.
+[ ] - is there a way to make the displayer interface and its implementation
+      more pythonic?
+[ ] - how to add header validation to functions in a pythonic way?

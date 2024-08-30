@@ -10,7 +10,9 @@ DefaultErrorContext = TypedDict(
     }
 )
 
-class IDefaultException(Exception):
+class DefaultException(Exception):
+    context: DefaultErrorContext
+
     def __init__(self, message: str, context: DefaultErrorContext):
         super()
         self.args = message,

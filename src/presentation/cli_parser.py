@@ -13,10 +13,33 @@ class DefaultArgumentParser():
 
         subparsers = parser.add_subparsers()
 
-        subparsers.add_parser(
+        search_parser = subparsers.add_parser(
             "search",
             help="Fetches anime list from API applying filters."
         )
+        search_parser.add_argument(
+            "-id",
+            type=int,
+            help="Fetches anime details by id",
+        )
+        search_parser.add_argument(
+            "-p",
+            "--page",
+            type=int,
+            default=1,
+            help="Defines which page of the list to show, defaults to 1."
+        )
+        search_parser.add_argument(
+            "-g",
+            "--genres",
+            help="Receive a comma separated list of genres. For a list of available genres see 'genres -h'."
+        )
+        search_parser.add_argument(
+            "-n",
+            "--name",
+            help="Filter animes wich have NAME in the title."
+        )
+
         subparsers.add_parser(
             "list",
             help="Display the animes in your list with relevant information."
@@ -60,6 +83,11 @@ class DefaultArgumentParser():
             type=int,
             help="""Update the number of watched episodes,
             also upates the last time watched column with the current date.""")
+
+        subparsers.add_parser(
+            "genres",
+            help="List available genres"
+        )
 
         return parser
 

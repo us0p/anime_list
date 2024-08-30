@@ -1,7 +1,7 @@
 import io
 import sys
 from unittest import TestCase
-from src.parsers.default_parser import DefaultArgumentParser
+from src.presentation.cli_parser import DefaultArgumentParser
 
 class TestDefaultParser(TestCase):
     def setup_stdout_redirect(self):
