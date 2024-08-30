@@ -37,7 +37,8 @@ To Do:
       apply matching pattern and inject list of genres in
       _parse_anime_list().
 [ ] - add filter options to anime search method.
-[ ] - add service method to search serie by name
+[ ] - add service method to search serie by name docs at
+      https://developer.themoviedb.org/reference/search-tv
 [x] - add a method to list available genres.
 [ ] - is there a way to make the displayer interface and its implementation
       more pythonic?
