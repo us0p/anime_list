@@ -27,7 +27,8 @@ class IService(ABC):
     async def get_anime_list(
         self,
         session: ClientSession,
-        page = 1
+        page = 1,
+        genres_filter: str = "",
     ) -> AnimeListReturn:
         ...
 
@@ -43,7 +44,9 @@ class IService(ABC):
     async def get_anime_list_by_name(
         self,
         session: ClientSession,
-        name: str
+        name: str,
+        page: int,
+        genres_filter: str = ""
     ) -> AnimeListReturn:
         ...
 

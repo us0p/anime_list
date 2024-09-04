@@ -41,12 +41,20 @@ class TMDBService(IService):
     async def get_anime_list(
         self,
         session: ClientSession,
-        page = 1
+        page = 1,
+        genres_filter: str = ""
     ) -> AnimeListReturn:
-        fetched_animes = await self._fetch_animes(session, page)
-        anime_list = await self._parse_fetched_animes(
+        genres = await self.get_genres_list(session)
+        filter = self._convert_genre_filter(genres, genres_filter)
+
+        fetched_animes = await self._fetch_animes(
             session,
-            fetched_animes["results"]
+            page,
+            filter
+        )
+        anime_list = self._parse_fetched_animes(
+            fetched_animes["results"],
+            genres
         )
         return {
             "anime_list": anime_list,
@@ -94,9 +102,31 @@ class TMDBService(IService):
     async def get_anime_list_by_name(
         self,
         session: ClientSession,
-        name: str
+        name: str,
+        page: int,
+        genres_filter: str = ""
     ) -> AnimeListReturn:
-        return {"total_pages": 0, "anime_list": [], "page": 0}
+        anime_result = await self._fetch_anime_by_name(session, page, name)
+        genres = await self.get_genres_list(session)
+        filter = self._convert_genre_filter(genres, genres_filter)
+
+        animes = []
+        for anime in anime_result["results"]:
+            if 16 in anime["genre_ids"]:
+                genre_ids = [str(gid) for gid in anime["genre_ids"]]
+                if ','.join(genre_ids).find(filter) >= 0:
+                    if "JP" in anime["origin_country"]:
+                        animes.append(anime)
+
+        anime_list = self._parse_fetched_animes(
+            animes,
+            genres
+        )
+        return {
+            "total_pages": anime_result["total_pages"],
+            "anime_list": anime_list,
+            "page": anime_result["page"]
+        }
 
     async def get_genres_list(self, session: ClientSession) -> list[Genre]:
         session.headers["Authorization"] = f'Bearer {self._token}'
@@ -106,10 +136,31 @@ class TMDBService(IService):
         )
         return result["genres"]
 
+    async def _fetch_anime_by_name(
+        self,
+        session: ClientSession,
+        page: int,
+        name: str
+    ):
+        session.headers["Authorization"] = f'Bearer {self._token}'
+        params = {
+            "include_adult": "false",
+            "page": page,
+            "language": "en-US",
+            "query": name
+        }
+
+        return await self._fetch(
+            session,
+            f"{self._default_uri}/search/tv",
+            params
+        )
+
     async def _fetch_animes(
         self,
         session: ClientSession,
-        page,
+        page: int,
+        genres: str = ""
     ):
         session.headers["Authorization"] = f'Bearer {self._token}'
         params = {
@@ -117,7 +168,8 @@ class TMDBService(IService):
             "include_null_first_air_dates": "false",
             "page": page,
             "sort_by": "popularity.desc",
-            "with_genres": 16, # Animation
+            # Animation
+            "with_genres": "16" + f",{genres}",
             "with_origin_country": "JP"
         }
         resp_body = await self._fetch(
@@ -138,13 +190,11 @@ class TMDBService(IService):
             self._raise_for_status(response, None, result)
             return result
 
-    async def _parse_fetched_animes(
+    def _parse_fetched_animes(
         self,
-        session: ClientSession,
         anime_list: list[AnimeInfo],
+        genres: list[Genre]
     ) -> list[AnimeListItem]:
-        session.headers["Authorization"] = f"Bearer {self._token}"
-        genres = await self.get_genres_list(session)
         parsed_anime_list: list[AnimeListItem] = []
         for anime in anime_list:
              parsed_anime_list.append(TMDBAnimeDisplayInfo(
@@ -174,3 +224,15 @@ class TMDBService(IService):
                     "res_body": res_body
                 }
             )
+
+    def _convert_genre_filter(self, genres: list[Genre], filter: str):
+        normalized_filter = filter.strip().lower().split(",")
+        filter = ",".join(
+            [
+                str(g["id"]) 
+                for g in genres 
+                if g["name"].lower() in normalized_filter
+                and g["id"] != 16
+            ]
+        )
+        return filter

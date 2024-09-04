@@ -32,13 +32,19 @@ To Do:
       available at this point.
 [x] - refactor option lookup in controller.
 [x] - add page options to anime search method.
-[ ] - anime tmdb service get_anime_list() should receive a list of genres
+[x] - anime tmdb service get_anime_list() should receive a list of genres
       from the api and a list of comma separated values from the cli,
       apply matching pattern and inject list of genres in
       _parse_anime_list().
-[ ] - add filter options to anime search method.
-[ ] - add service method to search serie by name docs at
+[x] - create a _fetch_animes_by_name async function and tests it must
+      follow _fetch_animes signature.
+[x] - add service method to search serie by name docs at
       https://developer.themoviedb.org/reference/search-tv
+[x] - results of the animes request should apply further filtering:
+      [x] - genre_id 16 (Animation) must be present.
+      [x] - origin country must be "JP".
+      [x] - if genre filter is present, must include only genres that also
+	    includes the provided filter.
 [x] - add a method to list available genres.
 [ ] - is there a way to make the displayer interface and its implementation
       more pythonic?

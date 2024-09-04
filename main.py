@@ -20,9 +20,20 @@ if __name__ == "__main__":
                         namespace.id
                     )
                 )
+            elif namespace.name:
+                asyncio.run(
+                    controller.service_list_animes_by_name(
+                        namespace.name,
+                        namespace.page,
+                        namespace.genres
+                    )
+                )
             else:
                 asyncio.run(
-                    controller.service_list_animes(namespace.page)
+                    controller.service_list_animes(
+                        namespace.page,
+                        namespace.genres
+                    )
                 )
         case "genres":
             asyncio.run(controller.service_get_genres())

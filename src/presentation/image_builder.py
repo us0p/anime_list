@@ -2,6 +2,15 @@ from PIL import Image
 import io
 from aiohttp import ClientSession
 
+# 76866
+# 71778
+# 236994
+
+# animes 71778 and 236994 doesn't have overview field these animes crash
+# presentation when they appear in appear in anime list.
+
+# anime 76866 overview field is breaking image display.
+
 class ImagePixels:
     default_width = 30
     default_height = 23

@@ -1,8 +1,6 @@
 import os
 from sys import stdout
 
-from interfaces.movie_service_interface import AnimeListReturn
-
 from ..interfaces.displayer_interface import AnimeListItem, FormatedTitleMap, AnimeDetailedInfo, IAnimeInfoListItem, IAnimeDetailedInfo, IDisplayer 
 from .image_builder import ImagePixels
 

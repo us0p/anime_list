@@ -32,11 +32,13 @@ class DefaultArgumentParser():
         search_parser.add_argument(
             "-g",
             "--genres",
+            default="",
             help="Receive a comma separated list of genres. For a list of available genres see 'genres -h'."
         )
         search_parser.add_argument(
             "-n",
             "--name",
+            default="",
             help="Filter animes wich have NAME in the title."
         )
 

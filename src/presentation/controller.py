@@ -47,12 +47,49 @@ class Controller:
             except DefaultException as e:
                 print(f"Error {e}")
 
-    async def service_list_animes(self, page: int):
+    async def service_list_animes(self, page: int, genres_filter: str):
         async with ClientSession() as session:
             try:
                 anime_list = await self.service.get_anime_list(
                     session,
-                    page
+                    page,
+                    genres_filter
+                )
+                ascii_images_coroutines = [
+                    self.image_builder.produce_ascii_image(
+                        session,
+                        anime["cover_url"]
+                    ) for anime in anime_list["anime_list"]
+                ]
+                
+                anime_ascii_images = await asyncio.gather(
+                    *ascii_images_coroutines
+                )
+
+                print(f'Page: {anime_list["page"]} of {anime_list["total_pages"]}')
+                for n in range(len(anime_list["anime_list"])):
+                    d = AnimeListItemDisplayer(
+                            anime_list["anime_list"][n],
+                            anime_ascii_images[n],
+                        )
+                    d.render_info()
+                print(f'Page: {anime_list["page"]} of {anime_list["total_pages"]}')
+            except DefaultException as e:
+                print(f"Error {e}")
+
+    async def service_list_animes_by_name(
+        self,
+        name: str,
+        page: int,
+        genres_filter: str
+    ):
+        async with ClientSession() as session:
+            try:
+                anime_list = await self.service.get_anime_list_by_name(
+                    session,
+                    name,
+                    page,
+                    genres_filter
                 )
                 ascii_images_coroutines = [
                     self.image_builder.produce_ascii_image(

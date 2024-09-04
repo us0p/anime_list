@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, Mock, call
 from aiohttp import ClientSession
 from datetime import datetime
 
+from src.interfaces.movie_service_interface import Genre
 from src.products.tmdb import TMDBAnimeDisplayInfo
 from src.utils.exceptions import DefaultException
 from src.services.tmdb import AnimeInfo, TMDBService
@@ -124,7 +125,8 @@ class TestTMDBServiceGetAimeSeriesList(IsolatedAsyncioTestCase):
         api_service = TMDBService("test")
         await api_service._fetch_animes(
             session_mock,
-            1
+            1,
+            "19,17,18"
         )
         session_mock.headers.__setitem__.assert_called_with(
             "Authorization", 
@@ -137,13 +139,13 @@ class TestTMDBServiceGetAimeSeriesList(IsolatedAsyncioTestCase):
                 "include_null_first_air_dates": "false",
                 "page": 1,
                 "sort_by": "popularity.desc",
-                "with_genres": 16,
+                "with_genres": "16,19,17,18",
                 "with_origin_country": "JP"
             }
         )
 
-class TestAsyncParseAnimeSeriesList(IsolatedAsyncioTestCase):
-    async def test_parse_anime_series_list(self):
+class TestAsyncParseAnimeSeriesList(TestCase):
+    def test_parse_anime_series_list(self):
         anime_list_mock: list[AnimeInfo] = [{
             'adult': False,
             'backdrop_path': '/p0dpg6vwRbGIoWB7hS7AqcqAkYi.jpg',
@@ -161,32 +163,14 @@ class TestAsyncParseAnimeSeriesList(IsolatedAsyncioTestCase):
             'vote_count': 141
         }]
 
-        genres_list_mock = {
-            "genres": [{
-                "id": 16,
-                "name": "Animation"
-            }]
-        }
-
-        session_mock = setup_session_and_response_async_mocks(
-            200,
-            genres_list_mock
-        )[0]
+        genres_list_mock: list[Genre] = [{"id": 16, "name": "Animation"}]
 
         api_service = TMDBService("test")
-        parsed_anime_list = await api_service._parse_fetched_animes(
-            session_mock,
-            anime_list_mock
+        parsed_anime_list = api_service._parse_fetched_animes(
+            anime_list_mock,
+            genres_list_mock
         )
 
-        session_mock.headers.__setitem__.assert_called_with(
-            "Authorization", 
-            'Bearer test'
-        )
-        session_mock.get.assert_called_with(
-            f'{api_service._default_uri}/genre/tv/list?language=en',
-            params=None
-        )
         self.assertDictEqual(
             parsed_anime_list[0],
             TMDBAnimeDisplayInfo(
@@ -228,45 +212,136 @@ class TestDefaultRequestErrorHandler(TestCase):
         res_body = {}
         api_service._raise_for_status(response, req_body, res_body)
 
+class TestGenreFilterConversion(TestCase):
+    def test_empty_filter(self):
+        genres = []
+        filter = ""
+        service = TMDBService("test")
+        converted_filter = service._convert_genre_filter(genres, filter)
+        self.assertEqual(converted_filter, "")
+
+    def test_remove_animation_filter(self):
+        genres = []
+        filter = "Animation"
+        service = TMDBService("test")
+        converted_filter = service._convert_genre_filter(genres, filter)
+        self.assertEqual(converted_filter, "")
+
+    def test_genre_filter_conversion(self):
+        genres: list[Genre] = [
+            {"id": 18, "name": "TEST1"},
+            {"id": 19, "name": "TEST2"},
+            {"id": 20, "name": "TEST3"}
+        ]
+        filter = "test1, TEST2"
+        service = TMDBService("test")
+        converted_filter = service._convert_genre_filter(genres, filter)
+        self.assertEqual(converted_filter, "18,19")
+
+class TestFetchAnimesByName(IsolatedAsyncioTestCase):
+    async def test__fetch_anime_by_name(self):
+        mock_response = {
+            "page": 1,
+            "results": [],
+            "total_pages": 1,
+            "total_results": 0
+        }
+ 
+        session_mock = setup_session_and_response_async_mocks(
+            200,
+            mock_response
+        )[0]
+
+        service = TMDBService("test")
+        response = await service._fetch_anime_by_name(
+            session_mock,
+            1,
+            "test"
+        )
+
+        session_mock.headers.__setitem__.assert_called_with(
+            "Authorization", 
+            'Bearer test'
+        )
+        session_mock.get.assert_called_with(
+            f"{service._default_uri}/search/tv",
+            params={
+                "include_adult": "false",
+                "page": 1,
+                "language": "en-US",
+                "query": "test"
+            }
+        )
+        self.assertEqual(response, mock_response)
+
+    async def test__fetch_anime_by_name_pagination(self):
+        session_mock = setup_session_and_response_async_mocks(
+            200
+        )[0]
+
+        service = TMDBService("test")
+        await service._fetch_anime_by_name(
+            session_mock,
+            2,
+            "test"
+        )
+
+        session_mock.get.assert_called_with(
+            f"{service._default_uri}/search/tv",
+            params={
+                "include_adult": "false",
+                "page": 2,
+                "language": "en-US",
+                "query": "test"
+            }
+        )
+
 class TestGetAnimeList(IsolatedAsyncioTestCase):
     async def test_anime_list(self):
         session_mock = AsyncMock(ClientSession)
         api_service = TMDBService('test')
         api_service._fetch_animes = AsyncMock()
-        api_service._parse_fetched_animes = AsyncMock()
         api_service._fetch_animes.return_value = {
             "page": 1,
             "results": [],
             "total_pages": 0
         }
-        api_service._parse_fetched_animes.return_value = []
 
-        anime_list_return = await api_service.get_anime_list(session_mock)
+        genres = [{"id": 16, "name": "Animation"}]
+        api_service.get_genres_list = AsyncMock()
+        api_service.get_genres_list.return_value = genres  
+
+        api_service._parse_fetched_animes = Mock()
+        api_service._parse_fetched_animes.return_value = []
+        api_service._convert_genre_filter = Mock()
+        api_service._convert_genre_filter.return_value = ""
+
+        page = 1
+        genres_filter = ""
+
+        anime_list_return = await api_service.get_anime_list(
+            session_mock,
+            page,
+            genres_filter
+        )
         self.assertEqual(anime_list_return["anime_list"], [])
         self.assertEqual(anime_list_return["page"], 1)
         self.assertEqual(anime_list_return["total_pages"], 0)
+        api_service.get_genres_list.assert_awaited()
         api_service._fetch_animes.assert_awaited()
-        api_service._fetch_animes.assert_called_with(session_mock, 1)
-        api_service._parse_fetched_animes.assert_awaited()
-        api_service._parse_fetched_animes.assert_called_with(
+        api_service._fetch_animes.assert_called_with(
             session_mock,
-            []
+            page,
+            genres_filter
         )
-
-    async def test_anime_list_pagination(self):
-        session_mock = AsyncMock(ClientSession)
-        api_service = TMDBService('test')
-        api_service._fetch_animes = AsyncMock()
-        api_service._parse_fetched_animes = AsyncMock()
-        api_service._fetch_animes.return_value = {
-            "page": 1,
-            "results": [],
-            "total_pages": 0
-        }
-
-        await api_service.get_anime_list(session_mock, 2)
-        api_service._fetch_animes.assert_called_with(session_mock, 2)
-
+        api_service._convert_genre_filter.assert_called_with(
+            genres,
+            genres_filter
+        )
+        api_service._parse_fetched_animes.assert_called_with(
+            [],
+            genres
+        )
 
 class TestFetchAnimeDetails(IsolatedAsyncioTestCase):
     results = [
@@ -384,4 +459,116 @@ class TestGetGenresList(IsolatedAsyncioTestCase):
         self.assertEqual(
             genres[0],
             {"id": 16, "name": "Animation"}
+        )
+
+class TestGetAnimeListByName(IsolatedAsyncioTestCase):
+    async def test_get_anime_list_by_name(self):
+        session_mock = setup_session_and_response_async_mocks(
+            200
+        )[0]
+
+        service = TMDBService('test')
+        service._fetch_anime_by_name = AsyncMock()
+        service._fetch_anime_by_name.return_value = {
+            "page": 1,
+            "results": [],
+            "total_pages": 1,
+            "total_results": 0
+        }
+        service._parse_fetched_animes = Mock()
+        service._parse_fetched_animes.return_value = []
+        service.get_genres_list = AsyncMock()
+        service.get_genres_list.return_value = []
+
+        query_name = 'dragon'
+        page = 1
+        genres_filter = ""
+
+        anime_list = await service.get_anime_list_by_name(
+            session_mock,
+            query_name,
+            page,
+            genres_filter
+        )
+
+        service.get_genres_list.assert_called_with(
+            session_mock
+        )
+
+        service._fetch_anime_by_name.assert_called_with(
+            session_mock,
+            page,
+            query_name
+        )
+
+        service._parse_fetched_animes.assert_called_with(
+            [],
+            []
+        )
+        self.assertEqual(
+            anime_list,
+            {"total_pages": 1, "anime_list": [], "page": 1}
+        )
+
+    async def test_get_anime_list_by_name_genre_filter(self):
+        session_mock = setup_session_and_response_async_mocks(
+            200
+        )[0]
+
+        fetch_result_mock = [
+            {
+                'genre_ids': [17],
+                'origin_country': ['JP'],
+            },
+            {
+                'genre_ids': [17],
+                'origin_country': ['US'],
+            },
+            {
+                'genre_ids': [16,17,18],
+                'origin_country': ['JP'],
+            }
+        ]
+
+        service = TMDBService("test")
+        service._fetch_anime_by_name = AsyncMock()
+        service._fetch_anime_by_name.return_value = {
+            "page": 1,
+            "results": fetch_result_mock,
+            "total_pages": 1,
+            "total_results": 1
+        }
+
+        genres: list[Genre] = [
+            {"id": 16, "name": "Animation"},
+            {"id": 17, "name": "Horror"},
+            {"id": 18, "name": "Fiction"}
+        ]
+
+        service.get_genres_list = AsyncMock()
+        service.get_genres_list.return_value = genres
+        service._parse_fetched_animes = Mock()
+        service._parse_fetched_animes.return_value = []
+        service._convert_genre_filter = Mock()
+        service._convert_genre_filter.return_value = "17,18"
+
+        anime_name = 'test'
+        page = 1
+        genres_filter = "Animation, horror,Fiction"
+
+        await service.get_anime_list_by_name(
+            session_mock,
+            anime_name,
+            page,
+            genres_filter
+        )
+
+        service._convert_genre_filter.assert_called_with(
+            genres,
+            genres_filter
+        )
+
+        service._parse_fetched_animes.assert_called_with(
+            [fetch_result_mock[2]],
+            genres
         )
