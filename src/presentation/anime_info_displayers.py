@@ -1,7 +1,7 @@
 import os
 from sys import stdout
 
-from ..interfaces.displayer_interface import AnimeListItem, FormatedTitleMap, AnimeDetailedInfo, IAnimeInfoListItem, IAnimeDetailedInfo, IDisplayer 
+from ..interfaces.displayer_interface import AnimeListItem, FormatedTitleMap, AnimeDetailedInfo, IDisplayer 
 from .image_builder import ImagePixels
 
 class TextBuilder():
@@ -60,6 +60,9 @@ class TextBuilder():
             lines.append(line)
             printed_char = offset
 
+        if not len(lines):
+            return [inf_prefix]
+
         return lines
 
 AnimeListItemFields: list[FormatedTitleMap] = [
@@ -115,8 +118,7 @@ AnimeDetailsFields: list[FormatedTitleMap] = [
 
 class AnimeDetailedItemDisplayer(
     TextBuilder,
-    IAnimeDetailedInfo,
-    IDisplayer,
+    IDisplayer[AnimeDetailedInfo],
 ):
     def __init__(
         self,
@@ -127,12 +129,8 @@ class AnimeDetailedItemDisplayer(
             image_pixels,
             AnimeListItemFields + AnimeDetailsFields
         )
-        self._anime_inf = anime_inf
+        self.anime_inf = anime_inf
         self._image_pixels = image_pixels
-
-    @property
-    def anime_inf(self) -> AnimeDetailedInfo:
-        return self._anime_inf
 
     def render_info(self):
         for info in self._anime_info_to_print:
@@ -161,19 +159,15 @@ class AnimeDetailedItemDisplayer(
 
 
 
-class AnimeListItemDisplayer(TextBuilder,IAnimeInfoListItem, IDisplayer):
+class AnimeListItemDisplayer(TextBuilder, IDisplayer[AnimeListItem]):
     def __init__(
         self,
         anime_inf: AnimeListItem,
         image_pixels: ImagePixels
     ):
         super().__init__(image_pixels, AnimeListItemFields)
-        self._anime_inf = anime_inf
+        self.anime_inf = anime_inf
         self._image_pixels = image_pixels
-
-    @property
-    def anime_inf(self) -> AnimeListItem:
-        return self._anime_inf
 
     def _get_next_anime_info(self):
         printed_anime_inf = len(self._printed_anime_inf)
@@ -194,7 +188,7 @@ class AnimeListItemDisplayer(TextBuilder,IAnimeInfoListItem, IDisplayer):
                 lines[last_visible_line] = f"{last_line}..."
                 return
 
-            lines[last_visible_line] = f"{last_line[0:len_line]}..."
+            lines[last_visible_line] = f"{last_line[0:len_line - 4]} ..."
 
     def _text_producer(self):
         if len(self._printed_anime_inf) == len(self._anime_info_to_print):
@@ -212,7 +206,7 @@ class AnimeListItemDisplayer(TextBuilder,IAnimeInfoListItem, IDisplayer):
         self._add_elipsis(content_lines, anime_info_to_print["max_lines"])
         line = content_lines[self._curr_contet_printed_lines]
         self._curr_contet_printed_lines += 1
-        if self._curr_contet_printed_lines == len(content_lines):
+        if self._curr_contet_printed_lines == len(content_lines) or self._curr_contet_printed_lines == anime_info_to_print["max_lines"]:
             self._printed_anime_inf.append(anime_info_to_print)
             self._curr_contet_printed_lines = 0
         yield line

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TypedDict
+from typing import Generic, TypeVar, TypedDict
 
 AnimeListItem = TypedDict("AnimeListItem", {
     "api_id": int,
@@ -31,19 +31,11 @@ FormatedTitleMap = TypedDict("FormatedTitleMap", {
     "max_lines": int
 })
 
-class IAnimeInfoListItem(ABC):
-    @property
-    @abstractmethod
-    def anime_inf(self) -> AnimeListItem:
-        ...
+T = TypeVar("T")
 
-class IAnimeDetailedInfo(ABC):
-    @property
-    @abstractmethod
-    def anime_inf(self) ->AnimeDetailedInfo:
-        ...
+class IDisplayer(ABC, Generic[T]):
+    anime_inf: T
 
-class IDisplayer(ABC):
     @abstractmethod
     def render_info(self):
         ...

@@ -18,6 +18,9 @@ database structure:
 https://dbdiagram.io/d/anime_list-66920b009939893daed1367a
 
 To Do:
+[ ] - create database initialization.
+[ ] - apply singleton pattern to database.
+[ ] - map required functions, arguments and return values into an interface.
 [x] - move TMDB "interfaces" to a products package.
 [x] - move DefaultError "interface" to a utils package.
 [x] - rename ApiService to TMDBService.
@@ -46,6 +49,6 @@ To Do:
       [x] - if genre filter is present, must include only genres that also
 	    includes the provided filter.
 [x] - add a method to list available genres.
-[ ] - is there a way to make the displayer interface and its implementation
+[x] - is there a way to make the displayer interface and its implementation
       more pythonic?
-[ ] - how to add header validation to functions in a pythonic way?
+[x] - how to add header validation to functions in a pythonic way?

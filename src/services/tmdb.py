@@ -8,6 +8,7 @@ from ..interfaces.displayer_interface import AnimeDetailedInfo, AnimeListItem
 
 from ..products.tmdb import TMDBAnimeDisplayInfo, TMDBAnimeDetailDisplayInfo
 from ..utils.exceptions import DefaultException
+from ..utils.decorators.authenticate import authenticate
 
 AnimeInfo = TypedDict(
     "AnimeInfo",
@@ -62,12 +63,12 @@ class TMDBService(IService):
             "total_pages": fetched_animes["total_pages"]
         }
 
+    @authenticate
     async def get_anime_details(
         self,
         session: ClientSession,
         api_id: int
     ) -> AnimeDetailedInfo:
-        session.headers["Authorization"] = f"Bearer {self._token}"
         details, trailers = await gather(
             self._fetch(
                 session,
@@ -128,21 +129,21 @@ class TMDBService(IService):
             "page": anime_result["page"]
         }
 
+    @authenticate
     async def get_genres_list(self, session: ClientSession) -> list[Genre]:
-        session.headers["Authorization"] = f'Bearer {self._token}'
         result = await self._fetch(
             session,
             f'{self._default_uri}/genre/tv/list?language=en'
         )
         return result["genres"]
 
+    @authenticate
     async def _fetch_anime_by_name(
         self,
         session: ClientSession,
         page: int,
         name: str
     ):
-        session.headers["Authorization"] = f'Bearer {self._token}'
         params = {
             "include_adult": "false",
             "page": page,
@@ -156,13 +157,13 @@ class TMDBService(IService):
             params
         )
 
+    @authenticate
     async def _fetch_animes(
         self,
         session: ClientSession,
         page: int,
         genres: str = ""
     ):
-        session.headers["Authorization"] = f'Bearer {self._token}'
         params = {
             "include_adult": "false",
             "include_null_first_air_dates": "false",
@@ -226,7 +227,10 @@ class TMDBService(IService):
             )
 
     def _convert_genre_filter(self, genres: list[Genre], filter: str):
-        normalized_filter = filter.strip().lower().split(",")
+        normalized_filter = [
+            nf.strip() 
+            for nf in filter.lower().split(",")
+        ]
         filter = ",".join(
             [
                 str(g["id"]) 
