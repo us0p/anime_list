@@ -55,6 +55,13 @@ class DefaultArgumentParser():
             "anime_id",
             type=int
         )
+        add_parser.add_argument(
+            "-tid",
+            "--tag-id",
+            type=int,
+            default=1,
+            help="Provide tag_id for the new anime, defaults to 1. For a list of available tags see 'tags -h'."
+        )
 
         remove_parser = subparsers.add_parser(
             "remove",
@@ -89,6 +96,11 @@ class DefaultArgumentParser():
         subparsers.add_parser(
             "genres",
             help="List available genres"
+        )
+
+        subparsers.add_parser(
+            'tags',
+            help='List available tags'
         )
 
         return parser

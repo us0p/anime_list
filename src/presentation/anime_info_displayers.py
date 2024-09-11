@@ -231,6 +231,6 @@ class ListDisplayer(IDisplayer):
         self.list_to_display = list_to_display
 
     def render_info(self):
-        print("Genres:")
+        print(f"{self.name}:")
         for item in self.list_to_display:
             print(f"- {item}")

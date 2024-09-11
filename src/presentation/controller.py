@@ -1,5 +1,8 @@
 import asyncio
+from typing import Optional
 from aiohttp import ClientSession
+
+from ..services.db import Database
 
 from ..presentation.anime_info_displayers import AnimeDetailedItemDisplayer, AnimeListItemDisplayer, ListDisplayer
 
@@ -15,6 +18,36 @@ class Controller:
     def __init__(self, service: IService):
         self.service = service
         self.image_builder = ImageBuilder()
+
+    def db_list_tags(self):
+        db = Database()
+        tags = db.select_all_tags()
+        d = ListDisplayer(
+            "Tags",
+            [f"id: {t.id}, name: {t.name}" for t in tags]
+        )
+        d.render_info()
+
+    async def sdb_create_anime(self, anime_id: int, tag_id: int):
+        db = Database()
+        async with ClientSession() as session:
+            try:
+                anime = await self.service.get_anime_details(
+                    session,
+                    anime_id
+                )
+                anime_dbid = db.insert_anime(
+                    anime_tmdb_id=anime["api_id"],
+                    seasons=anime["seasons_count"],
+                    watching_season=None,
+                    last_watched_episode=None,
+                    last_watched_at=None,
+                    title=anime["title"],
+                    tag_id=tag_id
+                )
+                print(f'Anime created, id: {anime_dbid}')
+            except DefaultException as e:
+                print(f'Error: {e}')
 
     async def service_get_genres(self):
         async with ClientSession() as session:
