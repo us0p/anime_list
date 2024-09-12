@@ -20,8 +20,11 @@ https://dbdiagram.io/d/anime_list-66920b009939893daed1367a
 To Do:
 [x] - create database initialization.
 [x] - apply singleton pattern to database.
-[ ] - must add optional parameters to command 'add'.
-[ ] - map required functions, arguments and return values into an interface.
+[x] - must add optional parameters to command 'add'.
+[x] - map required functions, arguments and return values into an interface.
+[ ] - in anime details display, should cut trailer title so that the link
+      fits all in one line.
+[ ] - improve db anime list display.
 [x] - move TMDB "interfaces" to a products package.
 [x] - move DefaultError "interface" to a utils package.
 [x] - rename ApiService to TMDBService.

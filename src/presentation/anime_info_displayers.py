@@ -1,8 +1,12 @@
 import os
 from sys import stdout
 
+from ..dtos.dto_anime import DTOAnime
+
 from ..interfaces.displayer_interface import AnimeListItem, FormatedTitleMap, AnimeDetailedInfo, IDisplayer 
 from .image_builder import ImagePixels
+
+from tabulate import tabulate
 
 class TextBuilder():
     _terminal_columns: int
@@ -234,3 +238,33 @@ class ListDisplayer(IDisplayer):
         print(f"{self.name}:")
         for item in self.list_to_display:
             print(f"- {item}")
+
+class DBAnimeDisplayer(IDisplayer):
+    db_anime_list: list[DTOAnime]
+
+    def __init__(self, db_anime_list: list[DTOAnime]):
+        self.db_anime_list = db_anime_list
+
+    def render_info(self):
+        print(tabulate(
+            [
+                [
+                    a.id,
+                    a.title,
+                    a.seasons,
+                    a.watching_season,
+                    a.last_watched_episode,
+                    a.last_watched_at,
+                    a.tag
+                ] for a in self.db_anime_list
+            ],
+            headers=[
+                "ID",
+                "Title",
+                "S",
+                "WS",
+                "LWEP",
+                "Last watched",
+                "Tag"
+            ]
+        ))

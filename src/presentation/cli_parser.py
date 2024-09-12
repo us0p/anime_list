@@ -42,9 +42,20 @@ class DefaultArgumentParser():
             help="Filter animes wich have NAME in the title."
         )
 
-        subparsers.add_parser(
+        list_parser = subparsers.add_parser(
             "list",
             help="Display the animes in your list with relevant information."
+        )
+        list_parser.add_argument(
+            "-id",
+            type=int,
+            help="Fetches anime by id"
+        )
+        list_parser.add_argument(
+            "-n",
+            "--name",
+            type=str,
+            help="Filter animes which have NAME in the title"
         )
 
         add_parser = subparsers.add_parser(
@@ -109,7 +120,14 @@ class DefaultArgumentParser():
             "--update-episodes",
             type=int,
             help="""Update the number of watched episodes,
-            also upates the last time watched column with the current date.""")
+            also upates the last time watched column with the current date."""
+        )
+        update_parser.add_argument(
+            "-ut",
+            "--update-tag",
+            type=int,
+            help="Update the tag of the anime"
+        )
 
         subparsers.add_parser(
             "genres",
@@ -134,12 +152,12 @@ class DefaultArgumentParser():
         options.command = args[0]
         
         if options.command == "update":
-            if options.update_seasons == None and options.update_episodes == None:
+            if options.update_seasons == None and options.update_episodes == None and options.update_tag == None:
                 try: 
                     self._parser.parse_args(["update", "-h"])
                 except SystemExit:
                     print(
-                        "Anime List update: error: must provide update_seasons or update_episodes",
+                        "Anime List update: error: must provide update_seasons, update_episodes or update_tag",
                         file=sys.stderr
                     )
                     raise

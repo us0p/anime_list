@@ -15,7 +15,7 @@ if __name__ == "__main__":
     default_argparse = DefaultArgumentParser()
     namespace = default_argparse.parse()
     tmdb_service = TMDBService(str(os.getenv("TMDB_API_TOKEN")))
-    controller = Controller(tmdb_service)
+    controller = Controller(tmdb_service, db)
     match namespace.command:
         case 'search':
             if namespace.id:
@@ -53,5 +53,19 @@ if __name__ == "__main__":
                     namespace.last_watched_at
                 )
             )
+        case "remove":
+            controller.db_delete_anime(namespace.anime_id)
+        case "update":
+            controller.db_update_anime(
+                namespace.anime_id,
+                namespace.update_seasons,
+                namespace.update_episodes,
+                namespace.update_tag
+            )
+        case "list":
+            if namespace.id:
+                controller.db_get_anime(namespace.id)
+            else:
+                controller.db_list_animes(namespace.name)
         case _:
             print("Command doesn't exist")
