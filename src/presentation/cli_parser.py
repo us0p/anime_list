@@ -62,6 +62,24 @@ class DefaultArgumentParser():
             default=1,
             help="Provide tag_id for the new anime, defaults to 1. For a list of available tags see 'tags -h'."
         )
+        add_parser.add_argument(
+            "-ws",
+            "--watching-season",
+            type=int,
+            help="Define the current season of the anime"
+        )
+        add_parser.add_argument(
+            "-lwe",
+            "--last-watched-episode",
+            type=int,
+            help="Set the last episode watched of the current season"
+        )
+        add_parser.add_argument(
+            "-lwa",
+            "--last-watched-at",
+            type=str,
+            help="A date string in the format YYYY-MM-DD. Defines the last time the anime was watched"
+        )
 
         remove_parser = subparsers.add_parser(
             "remove",

@@ -1,7 +1,7 @@
 from .base import Base
 
 from typing import TYPE_CHECKING, Optional
-from datetime import datetime
+from datetime import date
 
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 from sqlalchemy import ForeignKey
@@ -17,7 +17,7 @@ class Anime(Base):
     seasons: Mapped[int] = mapped_column(nullable=False)
     watching_season: Mapped[Optional[int]]
     last_watched_episode: Mapped[Optional[int]]
-    last_watched_at: Mapped[Optional[datetime]]
+    last_watched_at: Mapped[Optional[date]]
     title: Mapped[str] = mapped_column(nullable=False)
     tag_id: Mapped[int] = mapped_column(
         ForeignKey("tag.id"),

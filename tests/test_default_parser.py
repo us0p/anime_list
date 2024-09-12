@@ -48,7 +48,9 @@ class TestDefaultParser(TestCase):
             sys.stderr = default_stderr
             stderr.seek(0)
             expected_message_lines = [
-                'usage: Anime List add [-h] anime_id\n',
+                'usage: Anime List add [-h] [-tid TAG_ID] [-ws WATCHING_SEASON]\n',
+                '                      [-lwe LAST_WATCHED_EPISODE] [-lwa LAST_WATCHED_AT]\n',
+                '                      anime_id\n',
                 'Anime List add: error: the following arguments are required: anime_id\n'
             ]
             self.assertEqual(

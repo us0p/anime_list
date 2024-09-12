@@ -47,7 +47,10 @@ if __name__ == "__main__":
             asyncio.run(
                 controller.sdb_create_anime(
                     namespace.anime_id,
-                    namespace.tag_id
+                    namespace.tag_id,
+                    namespace.watching_season,
+                    namespace.last_watched_episode,
+                    namespace.last_watched_at
                 )
             )
         case _:

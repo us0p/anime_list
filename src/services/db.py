@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 from typing import Optional
 from sqlalchemy import Engine, create_engine, select
 from sqlalchemy.orm import Session
@@ -34,7 +34,7 @@ class Database(metaclass=MetaDB):
         seasons: int,
         watching_season: Optional[int],
         last_watched_episode: Optional[int],
-        last_watched_at: Optional[datetime],
+        last_watched_at: Optional[date],
         title: str,
         tag_id: int
     ):

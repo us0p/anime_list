@@ -1,4 +1,5 @@
 import asyncio
+from datetime import date
 from typing import Optional
 from aiohttp import ClientSession
 
@@ -28,7 +29,14 @@ class Controller:
         )
         d.render_info()
 
-    async def sdb_create_anime(self, anime_id: int, tag_id: int):
+    async def sdb_create_anime(
+        self,
+        anime_id: int,
+        tag_id: int,
+        watching_season: Optional[int],
+        last_watched_episode: Optional[int],
+        last_watched_at: Optional[str]
+    ):
         db = Database()
         async with ClientSession() as session:
             try:
@@ -36,16 +44,24 @@ class Controller:
                     session,
                     anime_id
                 )
+
+                lwa = date.fromisoformat(
+                    last_watched_at
+                ) if last_watched_at else None
+
                 anime_dbid = db.insert_anime(
                     anime_tmdb_id=anime["api_id"],
                     seasons=anime["seasons_count"],
-                    watching_season=None,
-                    last_watched_episode=None,
-                    last_watched_at=None,
+                    watching_season=watching_season,
+                    last_watched_episode=last_watched_episode,
+                    last_watched_at=lwa,
                     title=anime["title"],
                     tag_id=tag_id
                 )
                 print(f'Anime created, id: {anime_dbid}')
+            except ValueError as e:
+                print(f"Error: {e.args[0]}.")
+                print("Date must be in the format YYYY-MM-DD")
             except DefaultException as e:
                 print(f'Error: {e}')
 
